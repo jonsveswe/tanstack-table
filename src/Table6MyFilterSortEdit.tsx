@@ -17,7 +17,18 @@ import {
 
 import { rankItem } from "@tanstack/match-sorter-utils";
 
-import { makeData, Person } from "./makeData";
+//import { makeData, Person } from "./makeData";
+
+type Person = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  age: number;
+  visits: number;
+  progress: number;
+  status: string; //"relationship" | "complicated" | "single";
+  subRows?: Person[];
+};
 
 /* declare module "@tanstack/table-core" {
   interface FilterMeta {
@@ -66,37 +77,35 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 };
 
 function Table6MyFilterSortEdit() {
+  const API_URL = "http://localhost:5000/persons";
   const rerender = React.useReducer(() => ({}), {})[1];
 
   const [globalFilter, setGlobalFilter] = React.useState("");
+  /*   const [data, setData] = React.useState(() => {
+    let array: Person[] = makeData(10);
+    console.log(array);
+    return array;
+  }); */
+  const [data, setData] = React.useState<Person[]>([]);
+  //const refreshData = () => setData((old) => makeData(50));
 
-  /*   const CellProgress: Partial<ColumnDef<Person>> = ({ getValue, row: { index }, column: { id }, table }) => {
-    const initialValue = getValue();
-    // We need to keep and update the state of the cell normally
-    const [value, setValue] = React.useState(initialValue);
-
-    // When the input is blurred, we'll call our table meta's updateData function
-    const onBlur = () => {
-      table.options.meta?.updateData(index, id, value);
+  React.useEffect(() => {
+    const fetchPersons = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw Error(response.statusText);
+        const data = await response.json();
+        setData(data);
+      } catch (error: any) {
+        console.log(error.message);
+      } finally {
+      }
     };
-
-    // If the initialValue is changed external, sync it up with our state
-    React.useEffect(() => {
-      setValue(initialValue);
-    }, [initialValue]);
-
-    return (
-      <input
-        value={value as string}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={onBlur}
-      />
-    );
-  }
-
-  const CustomCell = (cell: Cell<Person, unknown>) => {
-    return <p>{cell.getValue()}</p>;
-  }; */
+    //Simulate slow API
+    setTimeout(() => {
+      fetchPersons();
+    }, 1000);
+  }, []);
 
   const columns = React.useMemo<ColumnDef<Person>[]>(
     () => [
@@ -144,9 +153,9 @@ function Table6MyFilterSortEdit() {
           const [value, setValue] = React.useState(initialValue);
 
           // When the input is blurred, we'll call our table meta's updateData function
-          const onBlur = () => {
+          /*           const onBlur = () => {
             table.options.meta?.updateData(index, id, value);
-          };
+          }; */
 
           // If the initialValue is changed external, sync it up with our state
           React.useEffect(() => {
@@ -157,6 +166,7 @@ function Table6MyFilterSortEdit() {
             event: React.ChangeEvent<HTMLSelectElement>
           ) => {
             setValue(event.target.value);
+            table.options.meta?.updateData(index, id, event.target.value);
           };
 
           return (
@@ -164,9 +174,13 @@ function Table6MyFilterSortEdit() {
               <select
                 name="dog-names"
                 id="dog-names"
+                //defaultChecked = {initialValue as string}
                 //onChange={(event) => setValue(event.target.value)}
                 onChange={handleOnChange}
               >
+                <option value={initialValue as string}>
+                  {initialValue as string}
+                </option>
                 <option value="rigatoni">Rigatoni</option>
                 <option value="dave">Dave</option>
                 <option value="pumpernickel">Pumpernickel</option>
@@ -209,9 +223,6 @@ function Table6MyFilterSortEdit() {
     []
   );
 
-  const [data, setData] = React.useState(() => makeData(15));
-  const refreshData = () => setData((old) => makeData(50));
-
   const table = useReactTable({
     data,
     columns,
@@ -233,8 +244,26 @@ function Table6MyFilterSortEdit() {
         setData((old) =>
           old.map((row, index) => {
             if (index === rowIndex) {
-              console.log({ ...old[rowIndex]!, [columnId]: value });
-              return { ...old[rowIndex]!, [columnId]: value };
+              let editedPerson = { ...old[rowIndex]!, [columnId]: value };
+              //console.log(editedPerson);
+              const updateOptions = {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(editedPerson),
+              };
+              console.log(editedPerson);
+              const reqUrl = `${API_URL}/${editedPerson.id}`;
+              fetch(reqUrl, updateOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                  console.log("Success:", result);
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                });
+              return editedPerson;
             }
             return row;
           })
@@ -314,10 +343,11 @@ function Table6MyFilterSortEdit() {
       <div>
         <button onClick={() => rerender()}>Force Rerender</button>
       </div>
-      <div>
+      {/*       <div>
         <button onClick={() => refreshData()}>Refresh Data</button>
-      </div>
+      </div> */}
       <pre>{JSON.stringify(table.getState(), null, 2)}</pre>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
 }
