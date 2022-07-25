@@ -2,12 +2,12 @@
   "persons": [
     {
       "id": 1,
-      "firstName": "Aurelio reg",
+      "firstName": "Aurelio reg wer sdsdf s s sdfsdf",
       "lastName": "Boyer",
       "age": 25,
       "visits": 85,
       "progress": 52,
-      "status": "rigatoni"
+      "status": "Done"
     },
     {
       "id": 2,
@@ -16,7 +16,7 @@
       "age": 7,
       "visits": 663,
       "progress": 41,
-      "status": "single"
+      "status": "Working on"
     },
     {
       "id": 3,
@@ -34,7 +34,7 @@
       "age": 7,
       "visits": 282,
       "progress": 53,
-      "status": "complicated"
+      "status": "Done"
     },
     {
       "id": 5,

@@ -1,6 +1,7 @@
 import React, { FC, ChangeEvent } from "react";
 import "./App.css";
 import "./table.css";
+import "./dropdown.css";
 
 import {
   Column,
@@ -152,41 +153,67 @@ function Table6MyFilterSortEdit() {
           // We need to keep and update the state of the cell normally
           const [value, setValue] = React.useState(initialValue);
 
-          // When the input is blurred, we'll call our table meta's updateData function
-          /*           const onBlur = () => {
-            table.options.meta?.updateData(index, id, value);
-          }; */
-
           // If the initialValue is changed external, sync it up with our state
           React.useEffect(() => {
             setValue(initialValue);
           }, [initialValue]);
 
-          const handleOnChange = (
+          /*           const handleOnChange = (
             event: React.ChangeEvent<HTMLSelectElement>
           ) => {
             setValue(event.target.value);
             table.options.meta?.updateData(index, id, event.target.value);
+          }; */
+
+          const [isOpen, setIsOpen] = React.useState(false);
+          const toggling = () => setIsOpen(!isOpen);
+          let options: string[] = ["Done", "Working on", "Stuck"];
+          const onOptionClicked = (option: string) => () => {
+            setValue(option);
+            setIsOpen(false);
+            table.options.meta?.updateData(index, id, option);
+            console.log(option);
+          };
+
+          const conditionalFormatting = (option: string) => {
+            if (option === "Done") return "rgba(76, 175, 80, 1)"; //green
+            if (option === "Working on") return "orange";
+            return "";
+          };
+          const conditionalFormatting2 = (option: string) => {
+            if (option === "Done") return "rgba(76, 175, 80, 1)"; //green
+            if (option === "Working on") return "orange";
+            return "";
           };
 
           return (
             <>
-              <select
-                name="dog-names"
-                id="dog-names"
-                //defaultChecked = {initialValue as string}
-                //onChange={(event) => setValue(event.target.value)}
-                onChange={handleOnChange}
-              >
-                <option value={initialValue as string}>
-                  {initialValue as string}
-                </option>
-                <option value="rigatoni">Rigatoni</option>
-                <option value="dave">Dave</option>
-                <option value="pumpernickel">Pumpernickel</option>
-                <option value="reeses">Reeses</option>
-              </select>
-              <div>{value as string}</div>
+              <div className="dropdown">
+                <button
+                  className="dropbtn"
+                  style={{
+                    backgroundColor: conditionalFormatting2(value as string),
+                  }}
+                  onClick={toggling}
+                >
+                  {(value as string) || "None"}
+                </button>
+                {isOpen && (
+                  <div className="dropdown-content">
+                    {options.map((option) => (
+                      <button
+                        style={{
+                          backgroundColor: conditionalFormatting(option),
+                        }}
+                        onClick={onOptionClicked(option)}
+                        key={Math.random()}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           );
         },
